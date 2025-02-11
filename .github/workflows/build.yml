@@ -1,0 +1,36 @@
+name: Build and Analyze with SonarCloud
+
+on:
+  push:
+    branches:
+      - main  # Wenn du möchtest, dass es nur für den Haupt-Branch läuft, ändere 'main' nach Bedarf
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  sonarqube:
+    name: SonarCloud Analysis
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Verhindert ein oberflächliches Klonen, wichtig für eine vollständige Analyse
+
+      - name: Set up JDK 11 (oder die passende Version für dein Projekt)
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+
+      - name: Cache SonarCloud dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-sonar-${{ hashFiles('**/pom.xml') }}  # Für Maven-Projekte
+
+      - name: Run SonarCloud analysis
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
